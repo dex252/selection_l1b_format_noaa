@@ -1,0 +1,3 @@
+c++ l1b_change.cpp -o l1b
+
+./l1b /home/slava/Projects/selection_l1b_format_noaa/mt201309242101_ir1.trk
