@@ -7,7 +7,7 @@ using namespace std;
 
 class Point
 {
-  public:
-    double lon;
-    double lat;
+public:
+  double lon;
+  double lat;
 };
