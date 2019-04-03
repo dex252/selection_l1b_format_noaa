@@ -1,3 +1,6 @@
-c++ l1b_change.cpp -o l1b
+Вам также нужно связать его с библиотекой zlib. Просто добавьте -lz к концу вашей командной строки.
 
-./l1b /home/slava/Projects/selection_l1b_format_noaa/mt201309242101_ir1.trk
+c++ l1b_change.cpp -o changel1b -lz
+
+./changel1b /home/slava/Projects/selection_l1b_format_noaa/mt201309242101_ir1.trk
+

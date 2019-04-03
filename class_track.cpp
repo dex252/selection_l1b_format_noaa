@@ -1,3 +1,5 @@
+#pragma once
+
 #include "class_vector.cpp"
 #include <sstream>
 #include <fstream>
@@ -19,7 +21,7 @@ class Track
     string trackName;
     string trackFile;
     double radius;
-    FILE *fin = NULL;
+    //    FILE *fin = NULL;
 
     Track(char *argv[], double rad, string tempPath)
     {
@@ -38,6 +40,8 @@ class Track
 
         copyTrackInTemp(argv, tempPath);
         readTrackInTemp();
+
+        remove(trackFile.c_str());
     }
 
     void copyTrackInTemp(char *argv[], string tempWay)
