@@ -20,7 +20,14 @@ class Track
 
     string trackName;
     string trackFile;
+
     double radius;
+
+    string startDate;
+    string endDate;
+
+    int startMillisec;
+    int endMillisec;
     //    FILE *fin = NULL;
 
     Track(char *argv[], double rad, string tempPath)
@@ -40,6 +47,7 @@ class Track
 
         copyTrackInTemp(argv, tempPath);
         readTrackInTemp();
+        readTrackInCash();
 
         remove(trackFile.c_str());
     }
@@ -93,15 +101,33 @@ class Track
                 trackWay.push_back(vector);
             }
         }
-        cout << "=======================================" << endl;
-
-        for (Vector n : trackWay)
-            cout << "minLat = " << n.start.lat << " minLon = " << n.start.lon << " maxLat =  " << n.end.lat << " maxLon = " << n.end.lon << " DATA = " << n.yymmdd << " TIME = " << n.milliseconds << "\n";
 
         in.close();
 
         delete lat;
         delete lon;
         delete skip;
+    }
+
+    void readTrackInCash()
+    {
+        int num = 0;
+        //cout << "=====================================================================================================" << endl;
+        for (Vector n : trackWay)
+        {
+            if (num == 0)
+            {
+                startMillisec = n.milliseconds;
+                startDate = n.yymmdd;
+            }
+
+            if (num == trackWay.size() - 1)
+            {
+                endMillisec = n.milliseconds;
+                endDate = n.yymmdd;
+            }
+            //  cout << "#" << num << " minLat = " << n.start.lat << " minLon = " << n.start.lon << " maxLat =  " << n.end.lat << " maxLon = " << n.end.lon << " DATA = " << n.yymmdd << " TIME = " << n.milliseconds << "\n";
+            num++;
+        }
     }
 };

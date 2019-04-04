@@ -1,6 +1,6 @@
 #include <iostream>
 #include "class_track.cpp"
-#include "gzip_reader.cpp"
+#include "atovs_data.cpp"
 
 using namespace std;
 
@@ -8,6 +8,7 @@ int main(int argc, char *argv[])
 {
     string home = "/home/slava/";
     string tempPath = home + "Projects/selection_l1b_format_noaa/TEMP/";
+    string iAtovsPath="/satellite/data/ATOVS/";
     double radius(5.00);
 
     int i;
@@ -19,13 +20,9 @@ int main(int argc, char *argv[])
     }
 
     Track track(argv, radius, tempPath);
+    AtovsData atovsData(track, iAtovsPath, tempPath);
 
-    GzipReader GzipReader;
-
-    string input = "/home/slava/Projects/selection_l1b_format_noaa/TEMP/data/NSS.AMAX.NK.D11172.S2050.E2244.B6813941.GC.gz";
-    string output = "/home/slava/Projects/selection_l1b_format_noaa/TEMP/data/AMAX.GC";
-
-    GzipReader.decompress(input, output);
+    
 
     return 0;
 }
