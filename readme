@@ -2,5 +2,4 @@
 
 c++ l1b_change.cpp -o changel1b -lz
 
-./changel1b /home/slava/Projects/selection_l1b_format_noaa/mt201309242101_ir1.trk
-
+./changel1b /home/slava/Projects/selection_l1b_format_noaa/mt201404302132_ir1.trk

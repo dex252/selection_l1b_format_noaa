@@ -28,7 +28,6 @@ class Track
 
     int startMillisec;
     int endMillisec;
-    //    FILE *fin = NULL;
 
     Track(char *argv[], double rad, string tempPath)
     {
@@ -55,7 +54,7 @@ class Track
     void copyTrackInTemp(char *argv[], string tempWay)
     {
         trackFile = tempWay + trackName;
-        cout << "TrackTEMPFile: " << trackFile << endl;
+        //cout << "TrackTEMPFile: " << trackFile << endl;
 
         //copy source .trk file in TEMP dir
         std::ifstream inCopy(argv[1], ios_base::in | ios_base::binary);
@@ -75,7 +74,7 @@ class Track
     void readTrackInTemp()
     {
         string *skip = new string;
-        string yymmdd, hhmmss; //???why don't delete
+        string yymmdd, hhmmss;
         double *lat = new double;
         double *lon = new double;
         //read copy of source .trk
