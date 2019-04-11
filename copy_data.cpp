@@ -11,16 +11,19 @@
 #include "class_track.cpp"
 #include <dirent.h>
 
+
+//#include <sys/file.h>   //  <- для копирования файлов
+
 using namespace std;
 
 class CopyData
 {
-  private:
+private:
     string atovsPath;
     string tempDate;
     struct stat info;
 
-  public:
+public:
     CopyData(Track track, string iAtovsPath, string temp)
     {
         atovsPath = iAtovsPath;
@@ -59,9 +62,13 @@ class CopyData
 
             cout << "ALL ==  " << fullPathToAtovs << endl;
             //Credentials get-запрос
-            fullPathToAtovs = "https://irods4.satellite.dvo.ru:1247/irods4.satellite.dvo.ru/services/StorageManagementIRods?res=irods_storage#/home/slava/Projects/selection_l1b_format_noaa/TEMP/atovs";
+            //fullPathToAtovs = "https://irods4.satellite.dvo.ru:1247/irods4.satellite.dvo.ru/services/StorageManagementIRods?res=irods_storage#/home/slava/Projects/selection_l1b_format_noaa/TEMP/atovs";
             //  ils ${IATOVSPATH}/${BEGIN_DATE_DIR} >${FILELIST}
+            //    string iAtovsPath="/satellite/data/ATOVS/";
+            //string iAtovsPath = "https://irods4.satellite.dvo.ru:1247/irods4.satellite.dvo.ru/services/StorageManagementIRods?res=irods_storage#/satellite/data/ATOVS/";
+
             copyAllFiles(fullPathToAtovs, tempDate);
+           // system("./cp.sh");
         }
     }
 
