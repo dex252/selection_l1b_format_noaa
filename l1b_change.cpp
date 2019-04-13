@@ -26,9 +26,9 @@ int main(int argc, char *argv[])
 
     Track track(argv, radius, tempPath);
     AtovsData atovsData(track, iAtovsPath, tempPath);
-
-    string amaxFile = "/home/slava/Projects/selection_l1b_format_noaa/TEMP/data/NSS.AMAX.NK.D14118.S1010.E1204.B8297576.GC";
-    AMAX amax(amaxFile);
+    //system("./scripts/endian");
+    //string amaxFile = "/home/slava/Projects/selection_l1b_format_noaa/TEMP/data/NSS.AMAX.NK.D14118.S1010.E1204.B8297576.GC";
+    //AMAX amax(amaxFile);
 
     return 0;
 }

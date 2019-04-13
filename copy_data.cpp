@@ -11,7 +11,6 @@
 #include "class_track.cpp"
 #include <dirent.h>
 
-
 //#include <sys/file.h>   //  <- для копирования файлов
 
 using namespace std;
@@ -36,10 +35,37 @@ public:
             cout << "Cannot access " << tempDate << ". Create new dir" << endl;
             mkdir(tempDate.c_str(), S_IRWXU);
         }
-        else
+
+        // downloadL1B(track);
+        writeDataTemp(track, temp);
+    }
+
+    void writeDataTemp(Track track, string temp)
+    {
+        string dateInTrack("first date");
+
+        ofstream foutDate;
+        ofstream foutTime;
+
+        foutDate.open(temp + "Dates.txt");
+        foutTime.open(temp + "Times.txt");
+
+        for (Vector n : track.trackWay)
         {
-            downloadL1B(track);
+            if (n.yymmdd != dateInTrack)
+            {
+                dateInTrack = n.yymmdd;
+                foutDate << dateInTrack << endl;
+            }
         }
+
+        foutTime << track.startDate << " " << std::to_string(track.startMillisec) << endl;
+        foutTime << track.endDate << " " << std::to_string(track.endMillisec) << endl;
+
+        foutDate.close();
+        foutTime.close();
+
+        // system("./scripts/cp.sh");
     }
 
     void downloadL1B(Track trackFile)
@@ -68,7 +94,7 @@ public:
             //string iAtovsPath = "https://irods4.satellite.dvo.ru:1247/irods4.satellite.dvo.ru/services/StorageManagementIRods?res=irods_storage#/satellite/data/ATOVS/";
 
             copyAllFiles(fullPathToAtovs, tempDate);
-           // system("./cp.sh");
+            // system("./cp.sh");
         }
     }
 

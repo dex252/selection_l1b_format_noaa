@@ -1,6 +1,0 @@
-#!/bin/bash
-
-IATOVSPATH=satellite/data/ATOVS
-BEGIN_DATE_DIR=2014/04/30
-
-iget -fv ${IATOVSPATH}/${BEGIN_DATE_DIR}/${A} ${ATOVSPROCESSDIR}
