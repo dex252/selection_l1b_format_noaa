@@ -19,6 +19,7 @@ class GzipReader
   public:
     GzipReader(string tempDate)
     {
+        cout << "Start decompression..." << endl;
         decompressTryAll(tempDate);
     }
 

@@ -24,7 +24,7 @@ public:
     atovsPath = iAtovsPath;
     tempDate = temp + "data/";
 
-    CopyData copyData(track, iAtovsPath, temp);
+    //CopyData copyData(track, iAtovsPath, temp);    //problems checkout
     GzipReader gzipReader(tempDate);
   }
 };
