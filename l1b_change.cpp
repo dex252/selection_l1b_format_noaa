@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
     Track track(argv, radius, tempPath);
     AtovsData atovsData(track, iAtovsPath, tempPath);
 
-    Parsing parsing(tempPath);
+    Parsing parsing(track, tempPath);
 
     return 0;
 }

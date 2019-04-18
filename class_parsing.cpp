@@ -9,6 +9,7 @@
 #include <fstream>
 #include "gzip_reader.cpp"
 #include "class_track.cpp"
+#include "class_vector.cpp"
 #include <dirent.h>
 #include <immintrin.h>
 #include <endian.h>
@@ -23,16 +24,16 @@ class Parsing
 public:
     string temp;
 
-    Parsing(string tempPath)
+    Parsing(Track track, string tempPath)
     {
         temp = tempPath + "data/";
-        //RunFiles(temp);
+        //RunFiles(track, temp);
         string amaxFile = "/home/slava/Projects/selection_l1b_format_noaa/TEMP/data/NSS.AMAX.NK.D11171.S1811.E1941.B6812425.WI";
-        AmaxParser(amaxFile);
+        AmaxParser(track, amaxFile);
     }
 
 private:
-    void RunFiles(string tempDate)
+    void RunFiles(Track track, string tempDate)
     {
 
         DIR *dir;
@@ -49,7 +50,7 @@ private:
                 {
                 case 'A':
                     cout << "AMAX" << endl;
-                    AmaxParser(temp + in_f);
+                    AmaxParser(track, temp + in_f);
                     break;
                 case 'B':
                     cout << "AMBX" << endl;
@@ -92,18 +93,7 @@ private:
         }
     }
 
-    string TimeConventer(int32_t utcTime)
-    {
-        int hh = utcTime / 3600000;
-        int mm = (utcTime % 3600000) / 60000;
-        int ss = ((utcTime % 3600000) % 60000) / 1000;
-
-        string time = to_string(hh) + ":" + to_string(mm) + ":" + to_string(ss);
-
-        return time;
-    }
-
-    void AmaxParser(string in_f)
+    void AmaxParser(Track track, string in_f)
     {
         int16_t i2;
         int32_t i4;
@@ -144,6 +134,14 @@ private:
         cout << "Count of scan: " << htobe16(i2) << endl;
         ama_h_scnlin = htobe16(i2);
 
+        //массив из 0 и 1 для пометки строк требующих записи или нет; отсчет строк в файле начинается с 1, но в массиве с 0
+        bool *lineWrite = new bool[ama_h_scnlin];
+
+        for (size_t i = 0; i < ama_h_scnlin; i++)
+        {
+            lineWrite[i] = false;
+        }
+
         in.read((char *)&i2, 2);
         cout << "Count of Calibrated, Earth Located Scan Lines: " << htobe16(i2) << endl;
         //seek to end of header 148 -> 2560
@@ -153,30 +151,137 @@ private:
         // for (int i = 0; i < ama_h_scnlin; i++)
         for (int i = 0; i < 1; i++)
         {
+            int line, year, day, time;
+            double lat, lon;
+            bool PASS, timePass = false;
+
             in.read((char *)&i2, 2);
-            cout << "Line #: " << htobe16(i2) << endl;
+
+            cout << "-------------Line #: " << htobe16(i2) << endl;
+            //номер строки - 1 для пометки в массиве
+            line = htobe16(i2) - 1;
+
+            in.read((char *)&i2, 2);
+            cout << "Year: " << htobe16(i2) << endl;
+            year = htobe16(i2);
+
+            in.read((char *)&i2, 2);
+            cout << "Day: " << htobe16(i2) << endl;
+            day = htobe16(i2);
+
+            in.seekg(2, ios_base::cur);
+            in.read((char *)&i4, 4);
+            cout << "UTC time: " << TimeConventer(htobe32(i4)) << endl;
+            time = GetTime(htobe32(i4));
+
+            cout << "Year = " << year << "   Dat = " << day << "    time = " << time << endl;
 
             //scan lines 2 - > 653
-            in.seekg(650, ios_base::cur);
-
-            for (size_t j = 2; j < 62; j += 2)
+            in.seekg(640, ios_base::cur);
+            //Проверка, входит ли момент времени рассматриваемой строки хотя бы в одну из точек трека
+            for (Vector point : track.trackWay)
             {
-                in.read((char *)&i4, 4);
-                cout << j / 2 << ":"
-                     << "LAT: " << htobe32s(i4) / pow(10, 4);
+                if (!timePass)
+                {
+                    if (point.dateYear == year)
+                    {
+                        if (point.dateDay == day)
+                        {
+                            if (time > (point.milliseconds - 5400000) && time < (point.milliseconds + 5400000))
+                            {
+                                timePass = true;
+                            }
+                        }
+                    }
+                }
+            }
+            //если момент времени включен в трек, то рассматриваем координаты строки;в противном случае пропускаем байты до следущей строки
+            if (timePass)
+            {
+                timePass = false;
 
-                in.read((char *)&i4, 4);
-                cout << "     :"
-                     << "LON: " << htobe32s(i4) / pow(10, 4) << endl; // Какого хрена?
+                for (size_t j = 2; j < 62; j += 2)
+                {
+                    in.read((char *)&i4, 4);
+                    cout << j / 2 << ":"
+                         << "LAT: " << htobe32s(i4) / pow(10, 4);
+                    lat = htobe32s(i4) / pow(10, 4);
+
+                    in.read((char *)&i4, 4);
+                    cout << "     :"
+                         << "LON: " << htobe32s(i4) / pow(10, 4) << endl;
+                    lon = htobe32s(i4) / pow(10, 4);
+
+                    //рассматриваем входит ли хотя бы одна из точек строки в область одной из точек трека в конкретный момент времени
+
+                    for (Vector point : track.trackWay)
+                    {
+                        //рассматрение прерывается, если найдена хотя бы одна точка
+                        if (!PASS)
+                        {
+                            //отбираем только те точки трека, которые входят в рассматриваемый промежуток времени
+                            if (point.dateYear == year)
+                            {
+                                if (point.dateDay == day)
+                                {
+                                    if (time > (point.milliseconds - 5400000) && time < (point.milliseconds + 5400000))
+                                    {
+                                        //если момент времени совпал, то проверяем вхождение в область точки
+                                        if (lat > point.start.lat && lat < point.end.lat && lon > point.start.lon && lon < point.end.lon)
+                                        {
+                                            //PASS сработает лишь единожды
+                                            PASS = true;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                if (PASS)
+                {
+                    //записываем номер строки, для дальнейшей записи в легкий файл l1b
+                    lineWrite[line] = true;
+                    PASS = false;
+                }
+            }
+            else
+            {
+                //если ни один момент времени не совпал, то пролистываем 240 байт координат
+                in.seekg(240, ios_base::cur);
             }
 
-            //time???
-            //892 -> 2560
-
-            in.seekg(2560 - 892, ios_base::cur);
+            //892 -> 2560 = 1668
+            in.seekg(1668, ios_base::cur);
         }
-
+        //до того, как файл был закрыт - необходимо записать строки в новый легковесный файл: 2 вараинта
+        //1: открыть файл по новой и вести запись последовательно
+        //2: вести запись параллельно, управляя cur (предпочтительней)         in.seekg(-4, ios_base::cur); - смещение указателя назад на 4 позиции
+        //во втором варианте в массиве нет необходимости, достаточно завести счетчик строк
+        delete[] lineWrite;
         in.close();
+    }
+
+    string TimeConventer(int32_t utcTime)
+    {
+        int hh = utcTime / 3600000;
+        int mm = (utcTime % 3600000) / 60000;
+        int ss = ((utcTime % 3600000) % 60000) / 1000;
+
+        string time = to_string(hh) + ":" + to_string(mm) + ":" + to_string(ss);
+
+        return time;
+    }
+
+    //get time in ms
+    int GetTime(int32_t utcTime)
+    {
+        int milihh = utcTime / 3600000;
+        int milimm = (utcTime % 3600000) / 60000;
+        int miliss = ((utcTime % 3600000) % 60000) / 1000;
+
+        int time = milihh * 3600000 + milimm * 60000 + miliss * 1000;
+        return time;
     }
 
     int32_t htobe32s(int32_t x)

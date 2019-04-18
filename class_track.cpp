@@ -96,6 +96,7 @@ class Track
                 vector.yymmdd = yymmdd;
 
                 vector.to_ms_time(hhmmss);
+                vector.to_date_day(yymmdd);
 
                 trackWay.push_back(vector);
             }
