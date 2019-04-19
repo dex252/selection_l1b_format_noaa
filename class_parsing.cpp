@@ -28,7 +28,7 @@ public:
     {
         temp = tempPath + "data/";
         //RunFiles(track, temp);
-        string amaxFile = "/home/slava/Projects/selection_l1b_format_noaa/TEMP/data/NSS.AMAX.NK.D11171.S1811.E1941.B6812425.WI";
+        string amaxFile = "/home/slava/Projects/selection_l1b_format_noaa/TEMP/data/NSS.AMAX.NK.D14118.S0643.E0837.B8297374.WI";
         AmaxParser(track, amaxFile);
     }
 
@@ -98,7 +98,7 @@ private:
         int16_t i2;
         int32_t i4;
         char c[buf_s];
-
+        int AllCur = 0;
         //HEADER
         int ama_h_scnlin;
 
@@ -133,13 +133,12 @@ private:
         in.read((char *)&i2, 2);
         cout << "Count of scan: " << htobe16(i2) << endl;
         ama_h_scnlin = htobe16(i2);
-
         //массив из 0 и 1 для пометки строк требующих записи или нет; отсчет строк в файле начинается с 1, но в массиве с 0
         bool *lineWrite = new bool[ama_h_scnlin];
 
-        for (size_t i = 0; i < ama_h_scnlin; i++)
+        for (size_t k = 0; k < ama_h_scnlin; k++)
         {
-            lineWrite[i] = false;
+            lineWrite[k] = false;
         }
 
         in.read((char *)&i2, 2);
@@ -147,17 +146,21 @@ private:
         //seek to end of header 148 -> 2560
         in.seekg(2412, ios_base::cur);
 
+        AllCur = 2560;
+        //  cout << "ALL CUR = " << AllCur << endl;
+
         //scan lines
-        // for (int i = 0; i < ama_h_scnlin; i++)
-        for (int i = 0; i < 1; i++)
+        for (int i = 0; i < ama_h_scnlin; i++)
+        //for (int i = 0; i < 5; i++)
         {
+            int CurrentCur = 0;
             int line, year, day, time;
             double lat, lon;
             bool PASS, timePass = false;
 
             in.read((char *)&i2, 2);
 
-            cout << "-------------Line #: " << htobe16(i2) << endl;
+            cout << "-------------Line #: " << htobe16(i2) << "  i = " << i << endl;
             //номер строки - 1 для пометки в массиве
             line = htobe16(i2) - 1;
 
@@ -178,6 +181,15 @@ private:
 
             //scan lines 2 - > 653
             in.seekg(640, ios_base::cur);
+
+            AllCur += 12;
+            AllCur += 640;
+
+            //     cout << "AllCur = " << AllCur << endl;
+
+            CurrentCur += 652;
+            //     cout << "CurrentCur = " << CurrentCur << endl;
+
             //Проверка, входит ли момент времени рассматриваемой строки хотя бы в одну из точек трека
             for (Vector point : track.trackWay)
             {
@@ -189,6 +201,7 @@ private:
                         {
                             if (time > (point.milliseconds - 5400000) && time < (point.milliseconds + 5400000))
                             {
+                                // cout << "Time enter in LAT = " << point.start.lat + 5 << "; LON = " << point.start.lon + 5 << endl;
                                 timePass = true;
                             }
                         }
@@ -199,7 +212,7 @@ private:
             if (timePass)
             {
                 timePass = false;
-
+                //  cout << "Time accept" << endl;
                 for (size_t j = 2; j < 62; j += 2)
                 {
                     in.read((char *)&i4, 4);
@@ -211,6 +224,16 @@ private:
                     cout << "     :"
                          << "LON: " << htobe32s(i4) / pow(10, 4) << endl;
                     lon = htobe32s(i4) / pow(10, 4);
+                    CurrentCur += 8;
+                    AllCur += 8;
+
+                    /* if (i == 610)
+                    {
+                        cout << j / 2 << ":"
+                             << "LAT: " << lat;
+                        cout << "     :"
+                             << "LON: " << lon << endl;
+                    }*/
 
                     //рассматриваем входит ли хотя бы одна из точек строки в область одной из точек трека в конкретный момент времени
 
@@ -230,6 +253,7 @@ private:
                                         if (lat > point.start.lat && lat < point.end.lat && lon > point.start.lon && lon < point.end.lon)
                                         {
                                             //PASS сработает лишь единожды
+                                            cout << "PASS accept" << endl;
                                             PASS = true;
                                         }
                                     }
@@ -249,15 +273,31 @@ private:
             {
                 //если ни один момент времени не совпал, то пролистываем 240 байт координат
                 in.seekg(240, ios_base::cur);
+                AllCur += 240;
+                //cout << "AllCur = " << AllCur << endl;
+
+                CurrentCur += 240;
+                //   cout << "CurrentCur = " << CurrentCur << endl;
             }
 
             //892 -> 2560 = 1668
             in.seekg(1668, ios_base::cur);
+            AllCur += 1668;
+            CurrentCur += 1668;
+            // cout << "CurrentCur = " << CurrentCur << endl;
+            //  cout << "AllCur = " << AllCur << endl;
         }
         //до того, как файл был закрыт - необходимо записать строки в новый легковесный файл: 2 вараинта
         //1: открыть файл по новой и вести запись последовательно
         //2: вести запись параллельно, управляя cur (предпочтительней)         in.seekg(-4, ios_base::cur); - смещение указателя назад на 4 позиции
         //во втором варианте в массиве нет необходимости, достаточно завести счетчик строк
+
+        cout << "FinalAllCur = " << AllCur << endl;
+        for (size_t i = 0; i < ama_h_scnlin; i++)
+        {
+            if (lineWrite[i])
+                cout << i << ":" << lineWrite[i] << endl;
+        }
         delete[] lineWrite;
         in.close();
     }
@@ -286,7 +326,7 @@ private:
 
     int32_t htobe32s(int32_t x)
     {
-        union {
+       /* union {
             int32_t u32;
             int8_t v[4];
         } ret;
@@ -294,6 +334,7 @@ private:
         ret.v[1] = (uint8_t)(x >> 16);
         ret.v[2] = (uint8_t)(x >> 8);
         ret.v[3] = (uint8_t)x;
-        return ret.u32;
+        return ret.u32;*/
+        return htobe32(x);
     }
 };
