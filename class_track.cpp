@@ -8,7 +8,7 @@
 #include <list>
 #include <algorithm>
 
-const static int BUF_SIZE = 4096;
+const static int BUF_SIZE = 16384;
 
 using std::ios_base;
 using namespace std;
