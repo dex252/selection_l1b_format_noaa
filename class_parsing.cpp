@@ -1,5 +1,7 @@
 #pragma once
 
+const int buf_s = 64;
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <string.h>
@@ -16,6 +18,9 @@
 #include <cmath>
 #include <dirent.h>
 #include "class_amax.cpp"
+#include "class_ambx.cpp"
+#include "class_hirx.cpp"
+#include "class_mhsx.cpp"
 
 using namespace std;
 
@@ -23,6 +28,10 @@ class Parsing
 {
 public:
     string temp;
+    Amax amax;
+    Ambx ambx;
+    Hirx hirx;
+    Mhsx mhsx;
 
     Parsing(Track track, string tempPath, string newDataPath)
     {
@@ -35,24 +44,44 @@ public:
 
         temp = tempPath + "data/";
 
-        string amaxFile = "/home/slava/Projects/selection_l1b_format_noaa/TEMP/data/NSS.AMAX.NK.D14118.S0643.E0837.B8297374.WI";
-        //  string amaxFile = "/home/slava/Projects/selection_l1b_format_noaa/TEMP/data/1.WI";
+        //  string amaxFile = "/home/slava/Projects/selection_l1b_format_noaa/TEMP/data/NSS.AMAX.NK.D14118.S0643.E0837.B8297374.WI";
+        //   string ambxFile = "/home/slava/Projects/selection_l1b_format_noaa/TEMP/data/NSS.AMBX.NK.D14118.S0643.E0837.B8297374.WI";
+        //  string hirxFile = "/home/slava/Projects/selection_l1b_format_noaa/TEMP/data/NSS.HIRX.NK.D14118.S0643.E0837.B8297374.WI";
+        // string mhsxFile = "/home/slava/Projects/selection_l1b_format_noaa/TEMP/data/NSS.MHSX.NN.D14119.S1701.E1856.B4607273.WI";
 
-        Amax amax(tempPath, newDataPath);
-        amax.AmaxParser(track, amaxFile);
+        Amax amax1(tempPath, newDataPath);
+        Ambx ambx2(tempPath, newDataPath);
+        Hirx hirx3(tempPath, newDataPath);
+        Mhsx mhsx4(tempPath, newDataPath);
 
-        //RunFiles(track, temp, amax);
+        // amax1.AmaxParser(track, amaxFile);
+        // ambx2.AmbxParser(track, ambxFile);
+        // hirx3.HirxParser(track, hirxFile);
+        // mhsx4.MhsxParser(track, mhsxFile);
+
+        amax = amax1;
+        ambx = ambx2;
+        hirx = hirx3;
+        mhsx = mhsx4;
+
+        RunFiles(track);
     }
 
 private:
-    void RunFiles(Track track, string tempDate, Amax amax)
+    void RunFiles(Track track)
     {
+        std::FILE* file = fopen("/home/slava/Projects/selection_l1b_format_noaa/TEMP/logs.txt", "w");
+        fclose(file);
+        std::ofstream logout("/home/slava/Projects/selection_l1b_format_noaa/TEMP/logs.txt", ios::in);
+        logout << "START..." << endl;
+        //1 - write, 0 - clear file
+        bool err_log = false;
 
         DIR *dir;
         struct dirent *ent;
         string in_f;
         int i = 0;
-        if ((dir = opendir(tempDate.c_str())) != NULL)
+        if ((dir = opendir(temp.c_str())) != NULL)
         {
             while ((ent = readdir(dir)) != NULL)
             {
@@ -62,26 +91,33 @@ private:
                 {
                 case 'A':
                     cout << "AMAX" << endl;
-                    amax.AmaxParser(track, temp + in_f);
+                    err_log = amax.AmaxParser(track, temp + in_f);
+                    logout << "File " << in_f << "complite with code " << err_log << endl;
                     break;
                 case 'B':
                     cout << "AMBX" << endl;
-                    // AmbxParser(temp + in_f);
+                    err_log = ambx.AmbxParser(track, temp + in_f);
+                    logout << "File " << in_f << "complite with code " << err_log << endl;
                     break;
                 case 'H':
                     cout << "HIRX" << endl;
-                    // HirxParser(temp + in_f);
+                    err_log = hirx.HirxParser(track, temp + in_f);
+                    logout << "File " << in_f << "complite with code " << err_log << endl;
                     break;
                 case 'M':
                     cout << "MHSX" << endl;
-                    //MhsxParser(temp + in_f);
+                    err_log = mhsx.MhsxParser(track, temp + in_f);
+                    logout << "File " << in_f << "complite with code " << err_log << endl;
                     break;
                 default:
                     cout << "ERROR: Unindetermined type." << endl;
+                    logout << "File " << in_f << " don't work" << endl;
                     break;
                 }
             }
             closedir(dir);
+            logout << "...END";
+            logout.close();
         }
     }
 

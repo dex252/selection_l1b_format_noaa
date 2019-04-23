@@ -16,24 +16,24 @@
 
 using namespace std;
 
-class Amax
+class Ambx
 {
 public:
     string temp;
     string newData;
 
-    Amax()
+    Ambx()
     {
-        //BLOCK_SIZE = 2560 bytes
+        //BLOCK_SIZE = 3072 bytes
     }
 
-    Amax(string tempPath, string dataPath)
+    Ambx(string tempPath, string dataPath)
     {
         temp = tempPath;
         newData = dataPath;
     }
 
-    bool AmaxParser(Track track, string in_f)
+    bool AmbxParser(Track track, string in_f)
     {
         int16_t i2;
         int32_t i4;
@@ -69,9 +69,9 @@ public:
 
         in.read((char *)&i4, 4);
         cout << "End UTC time: " << TimeConventer(htobe32(i4)) << endl;
-        //104 befor + 40 after, 145
-        in.seekg(40, ios_base::cur);
 
+        in.seekg(28, ios_base::cur);
+        // 132 - > 133-134 bytes - count of lines
         in.read((char *)&i2, 2);
         cout << "Count of scan: " << htobe16(i2) << endl;
         ama_h_scnlin = htobe16(i2);
@@ -85,15 +85,15 @@ public:
 
         in.read((char *)&i2, 2);
         cout << "Count of Calibrated, Earth Located Scan Lines: " << htobe16(i2) << endl;
-        //seek to end of header 148 -> 2560
-        in.seekg(2412, ios_base::cur);
+        //seek to end of header 136 -> 3072
+        in.seekg(2936, ios_base::cur);
 
-        AllCur = 2560;
+        AllCur = 3072;
         //  cout << "ALL CUR = " << AllCur << endl;
 
         //scan lines
         for (int i = 0; i < ama_h_scnlin; i++)
-        //        for (int i = 0; i < 1; i++)
+        //for (int i = 0; i < 2; i++)
         {
             int CurrentCur = -1;
             int line, year, day, time;
@@ -103,16 +103,16 @@ public:
 
             in.read((char *)&i2, 2);
 
-          //  cout << "-------------Line #: " << htobe16(i2) << "  i = " << i << endl;
-            //номер строки - отлична от порядкового номера
+        //    cout << "-------------Line #: " << htobe16(i2) << "  i = " << i << endl;
+            //номер строки
             line = htobe16(i2) - 1;
 
             in.read((char *)&i2, 2);
-          //  cout << "Year: " << htobe16(i2) << endl;
+         //   cout << "Year: " << htobe16(i2) << endl;
             year = htobe16(i2);
 
             in.read((char *)&i2, 2);
-       //     cout << "Day: " << htobe16(i2) << endl;
+         //   cout << "Day: " << htobe16(i2) << endl;
             day = htobe16(i2);
 
             in.seekg(2, ios_base::cur);
@@ -122,15 +122,15 @@ public:
 
          //   cout << "Year = " << year << "   Day = " << day << "    time = " << time << endl;
 
-            //scan lines 2 - > 653
-            in.seekg(640, ios_base::cur);
+            //scan lines 12 - > 740
+            in.seekg(740, ios_base::cur);
 
             AllCur += 12;
-            AllCur += 640;
+            AllCur += 740;
 
             //     cout << "AllCur = " << AllCur << endl;
 
-            CurrentCur += 652;
+            CurrentCur += 740;
             //     cout << "CurrentCur = " << CurrentCur << endl;
 
             //Проверка, входит ли момент времени рассматриваемой строки хотя бы в одну из точек трека
@@ -156,16 +156,16 @@ public:
             {
                 timePass = false;
                 //  cout << "Time accept" << endl;
-                for (size_t j = 2; j < 62; j += 2)
+                for (size_t j = 2; j < 182; j += 2)
                 {
                     in.read((char *)&i4, 4);
-                    //       cout << j / 2 << ":"
-                    //          << "LAT: " << htobe32s(i4) / pow(10, 4);
+                    //    cout << j / 2 << ":"
+                    //        << "LAT: " << htobe32s(i4) / pow(10, 4);
                     lat = htobe32s(i4) / pow(10, 4);
 
                     in.read((char *)&i4, 4);
-                    //      cout << "     :"
-                    //          << "LON: " << htobe32s(i4) / pow(10, 4) << endl;
+                    //     cout << "     :"
+                    //         << "LON: " << htobe32s(i4) / pow(10, 4) << endl;
                     lon = htobe32s(i4) / pow(10, 4);
                     CurrentCur += 8;
                     AllCur += 8;
@@ -216,19 +216,19 @@ public:
             }
             else
             {
-                //если ни один момент времени не совпал, то пролистываем 240 байт координат
-                in.seekg(240, ios_base::cur);
-                AllCur += 240;
+                //если ни один момент времени не совпал, то пролистываем 720 байт координат
+                in.seekg(720, ios_base::cur);
+                AllCur += 720;
                 //cout << "AllCur = " << AllCur << endl;
 
-                CurrentCur += 240;
+                CurrentCur += 720;
                 //   cout << "CurrentCur = " << CurrentCur << endl;
             }
 
-            //892 -> 2560 = 1668
-            in.seekg(1668, ios_base::cur);
-            AllCur += 1668;
-            CurrentCur += 1668;
+            //1472 -> 3072 = 1600
+            in.seekg(1600, ios_base::cur);
+            AllCur += 1600;
+            CurrentCur += 1600;
             // cout << "CurrentCur = " << CurrentCur << endl;
             //  cout << "AllCur = " << AllCur << endl;
         }
@@ -236,7 +236,7 @@ public:
       //  cout << "FinalAllCur = " << AllCur << endl;
         for (size_t i = 0; i < ama_h_scnlin; i++)
         {
-         //   if (lineWrite[i])
+        //    if (lineWrite[i])
          //       cout << i << ":" << lineWrite[i] << endl;
         }
 
@@ -260,28 +260,28 @@ public:
             ofstream wr(wr_f.c_str(), ios::binary);
             //установка курсора в начала файла
             in.seekg(0, ios::beg);
-            //копирование первых 144 байт
-            in.read((char *)&cc, 144);
-            wr.write((char *)&cc, 144);
+            //копирование первых 132 байт
+            in.read((char *)&cc, 132);
+            wr.write((char *)&cc, 132);
             //подмена кол-ва строк
             i2 = htobe16(count);
             wr.write((char *)&i2, 2);
             in.seekg(2, ios::cur);
-            //копирование 2414 байт от 146 -> 2560
-            in.read((char *)&cc, 2414);
-            wr.write((char *)&cc, 2414);
+            //копирование 2938 байт от 134 -> 3072
+            in.read((char *)&cc, 2938);
+            wr.write((char *)&cc, 2938);
             //запись необходимых строк
             for (size_t line = 0; line < ama_h_scnlin; line++)
             {
                 if (lineWrite[line])
                 {
                   //  cout << "LINE = " << line << endl;
-                    in.read((char *)&cc, 2560);
-                    wr.write((char *)&cc, 2560);
+                    in.read((char *)&cc, 3072);
+                    wr.write((char *)&cc, 3072);
                 }
                 else
                 {
-                    in.seekg(2560, ios::cur);
+                    in.seekg(3072, ios::cur);
                 }
             }
 
@@ -318,15 +318,6 @@ private:
 
     int32_t htobe32s(int32_t x)
     {
-        /* union {
-            int32_t u32;
-            int8_t v[4];
-        } ret;
-        ret.v[0] = (uint8_t)(x >> 24);
-        ret.v[1] = (uint8_t)(x >> 16);
-        ret.v[2] = (uint8_t)(x >> 8);
-        ret.v[3] = (uint8_t)x;
-        return ret.u32;*/
         return htobe32(x);
     }
 };
