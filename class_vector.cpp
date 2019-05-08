@@ -34,7 +34,7 @@ public:
     int milimm = stoi(hhmmss.substr(3, 2));
     int miliss = stoi(hhmmss.substr(6, 2));
 
-    milliseconds = milihh * 3600000 + milimm * 60000 + miliss * 1000;
+    milliseconds = milihh * msInHour + milimm * msInMin + miliss * msInSec;
   }
 
   void to_date_day(string date)

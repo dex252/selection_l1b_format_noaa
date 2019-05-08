@@ -8,8 +8,6 @@
 #include <list>
 #include <algorithm>
 
-const static int BUF_SIZE = 16384;
-
 using std::ios_base;
 using namespace std;
 
@@ -54,7 +52,6 @@ class Track
     void copyTrackInTemp(char *argv[], string tempWay)
     {
         trackFile = tempWay + trackName;
-        //cout << "TrackTEMPFile: " << trackFile << endl;
 
         //copy source .trk file in TEMP dir
         std::ifstream inCopy(argv[1], ios_base::in | ios_base::binary);
@@ -112,7 +109,7 @@ class Track
     void readTrackInCash()
     {
         int num = 0;
-        //cout << "=====================================================================================================" << endl;
+
         for (Vector n : trackWay)
         {
             if (num == 0)
@@ -126,7 +123,7 @@ class Track
                 endMillisec = n.milliseconds;
                 endDate = n.yymmdd;
             }
-            //  cout << "#" << num << " minLat = " << n.start.lat << " minLon = " << n.start.lon << " maxLat =  " << n.end.lat << " maxLon = " << n.end.lon << " DATA = " << n.yymmdd << " TIME = " << n.milliseconds << "\n";
+
             num++;
         }
     }
