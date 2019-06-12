@@ -4,6 +4,7 @@
 #	Syntax: "./prof4tc.sh TC_track.txt"
 
 SOURCEFILE=$1
+PROC_NUM=$2 #число потоков
 HOME=$HOME/irus17
 IHOME=/satellite/home/slava/irus17
 ATOVSPROCESSDIR=${HOME}/full_System_new/data
@@ -236,7 +237,7 @@ echo 'numPixelsInLat = 4' >> ${COORDFILE}
 
 cd ${BUILDPROF}
 echo "Starting build profiles: cd ${BUILDPROF}; ./build_profiles.sh ${ATOVSPROCESSDIR} ${TRACK_N}"
-./build_profiles.sh ${ATOVSPROCESSDIR} ${TRACK_N}
+./build_profiles.sh ${ATOVSPROCESSDIR} ${TRACK_N} ${PROC_NUM}
 
 # enable trigger "create.profile.gml" in dsystem
 echo "result:$IDEST_DIR/$TRACK_N"
